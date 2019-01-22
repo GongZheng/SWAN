@@ -31,7 +31,7 @@
  *  Description: SWAN128 with a clear structure. The key schedule is precomputed.
  *  Created on: 2018-12-24
  *  Last modified: 2019-01-13
- *  Author: Zheng Gong, Weijie Li, Guohong Liao, Tao Sun, Guojun Tang, Bing Sun, Siwei Sun.
+ *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang.
  */
 
 #ifndef SWAN128_H_INCLUDED
@@ -85,7 +85,7 @@ void Beta(uint16_t a[4])
     memcpy(a, b, sizeof(b));
 }
 
-//ShiftLane: The first affine function before the Beta function;
+//ShiftLanes: The first affine function before the Beta function;
 void ShiftLanes(uint16_t a[4])
 {
     a[1] = ROL16(a[1], A);
@@ -93,15 +93,15 @@ void ShiftLanes(uint16_t a[4])
     a[3] = ROL16(a[3], C);
 }
 
-//SwitchLane:The second affine function after the Beta function;
+//SwitchLanes:The second affine function after the Beta function;
 void SwitchLanes(uint16_t a[4])
 {
-    uint16_t temp;
-    temp = a[3];
-    a[3] = a[2];
-    a[2] = a[1];
-    a[1] = a[0];
-    a[0] = temp;
+    uint16_t b[4];
+    b[0] = a[1] ^ a[2] ^ a[3];
+    b[1] = a[0] ^ a[2] ^ a[3];
+    b[2] = a[0] ^ a[1] ^ a[3];
+    b[3] = a[0] ^ a[1] ^ a[2];
+    memcpy(a, b, sizeof(b));
 }
 
 //d = 7 bytes
