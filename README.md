@@ -13,7 +13,7 @@ Software implementation of cryptographic algorithms are widely-used in practice 
 git clone https://github.com/GongZheng/SWAN.git
 ```
 
-###Build steps
+### Build steps
 
 ```
 ${build_type} could be none,debug,release
@@ -36,7 +36,7 @@ make
 ```
 
 
-###Run
+### Run
 
 ```
 ./MAIN
