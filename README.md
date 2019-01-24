@@ -20,11 +20,12 @@ ${build_type} could be none,debug,release
 ```
 
 
-| | build_type | CMAKE_C_FLAGS |
+| build_type | CMAKE_C_FLAGS |
 |:-------------:|:-------------|
 | none |  |
 |debug|"-O0 -g3"|
 | none | "-O2" |
+
 
 ```
 cd SWAN/code/c/factory_mode
