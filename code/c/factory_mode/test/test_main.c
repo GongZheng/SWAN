@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "count_cycles.h"
-#define TEST 100000
+#define TEST 10000
 
 void dump(const uint8_t *li, int len)
 {
