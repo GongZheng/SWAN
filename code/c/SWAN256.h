@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018,
+ * Copyright (c) 2018, 2019.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  *  Description: SWAN256 with a clear structure. The key schedule is on-the-fly computed.
  *  Created on: 2018-12-24
- *  Last modified: 2019-01-13
- *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang.
+ *  Last modified: 2019-02-21
+ *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang, Zhaoji Xu, Yingjie Zhang.
  */
 
 #ifndef SWAN256_H_INCLUDED
@@ -123,332 +123,341 @@ void Beta(uint32_t a[4])
     memcpy(a, b, sizeof(b));
     }
 
-    //ShiftLanes: The first affine function before the Beta function;
-    void ShiftLanes(uint32_t a[4])
+//ShiftLanes: The first affine function before the Beta function;
+void ShiftLanes(uint32_t a[4])
+{
+    a[1] = ROL32(a[1], A);
+    a[2] = ROL32(a[2], B);
+    a[3] = ROL32(a[3], C);
+}
+
+//SwitchLanes:The second affine function after the Beta function;
+void SwitchLanes(uint32_t a[4])
+{
+    uint32_t b[4];
+    b[0] = a[1] ^ a[2] ^ a[3];
+    b[1] = a[0] ^ a[2] ^ a[3];
+    b[2] = a[0] ^ a[1] ^ a[3];
+    b[3] = a[0] ^ a[1] ^ a[2];
+    memcpy(a, b, sizeof(b));
+}
+
+//d = 15 bytes
+void RotateKeyByte(uint8_t *key, uint16_t keylength)
+{
+    uint8_t i;
+    uint8_t temp[15];
+
+    for (i = 0; i < 15; i++)
     {
-        a[1] = ROL32(a[1], A);
-        a[2] = ROL32(a[2], B);
-        a[3] = ROL32(a[3], C);
+        temp[i] = key[i];
     }
 
-    //SwitchLanes:The second affine function after the Beta function;
-    void SwitchLanes(uint32_t a[4])
+    //Right rotate every byte of the key;
+    for (i = 0; i < (keylength / 8) - 1; i++)
     {
-      uint32_t b[4];
-      b[0] = a[1] ^ a[2] ^ a[3];
-      b[1] = a[0] ^ a[2] ^ a[3];
-      b[2] = a[0] ^ a[1] ^ a[3];
-      b[3] = a[0] ^ a[1] ^ a[2];
-      memcpy(a, b, sizeof(b));
+        key[i] = key[i + 15];
     }
 
-    //d = 15 bytes
-    void RotateKeyByte(uint8_t *key, uint16_t keylength)
+    //Cyclic the first byte of the key to the MSB;
+    for (i = 0; i < 15; i++)
     {
-        uint8_t i;
-        uint8_t temp[15];
+        key[(keylength / 8) - (15 - i)] = temp[i];
+    }
+}
 
-        for (i = 0; i < 15; i++)
-        {
-            temp[i] = key[i];
-        }
-
-        //Right rotate every byte of the key;
-        for (i = 0; i < (keylength / 8) - 1; i++)
-        {
-            key[i] = key[i + 15];
-        }
-
-        //Cyclic the first byte of the key to the MSB;
-        for (i = 0; i < 15; i++)
-        {
-            key[(keylength / 8) - (15 - i)] = temp[i];
-        }
+void InvRotateKeyByte(uint8_t *key, uint16_t keylength)
+{
+    uint8_t i;
+    uint8_t temp[15];
+    for (i = 0; i < 15; i++)
+    {
+        temp[i] = key[(keylength / 8) - (15 - i)];
+    }
+    //Right rotate every byte of the key;
+    for (i = (keylength / 8) - 1; i > 0; i--)
+    {
+        key[i] = key[i - 15];
     }
 
-    void InvRotateKeyByte(uint8_t *key, uint16_t keylength)
+    //Cyclic the first byte of the key to the MSB;
+    for (i = 0; i < 15; i++)
     {
-        uint8_t i;
-        uint8_t temp[15];
-        for (i = 0; i < 15; i++)
-        {
-            temp[i] = key[(keylength / 8) - (15 - i)];
-        }
-        //Right rotate every byte of the key;
-        for (i = (keylength / 8) - 1; i > 0; i--)
-        {
-            key[i] = key[i - 15];
-        }
-
-        //Cyclic the first byte of the key to the MSB;
-        for (i = 0; i < 15; i++)
-        {
-            key[i] = temp[i];
-        }
+        key[i] = temp[i];
     }
+}
 
 
-    void SWAN256_encrypt_rounds(const uint32_t *plain, const uint32_t *masterkey, const uint8_t rounds, uint32_t *cipher)
+void SWAN256_encrypt_rounds(const uint32_t *plain, const uint32_t *masterkey, const uint8_t rounds, uint32_t *cipher)
+{
+    uint8_t i;
+    uint32_t L[4];
+    uint32_t R[4];
+    uint32_t tempL[4];
+    uint32_t tempR[4];
+    uint32_t key[KEY256 / 32];
+    memcpy(key, masterkey, KEY256 / 8);
+    uint32_t subkey[4];
+    uint32_t round_constant[4];
+    //uint64_t round_constant = 0;
+
+    //initialize the plaintext as the first round input;
+    L[0] = plain[0];
+    L[1] = plain[1];
+    L[2] = plain[2];
+    L[3] = plain[3];
+
+    R[0] = plain[4];
+    R[1] = plain[5];
+    R[2] = plain[6];
+    R[3] = plain[7];
+
+   //init round_constant
+    memset(round_constant, 0, sizeof(round_constant));
+
+    for (i = 1; i <= rounds; i++)
     {
-        uint8_t i;
-        uint32_t L[4];
-        uint32_t R[4];
-        uint32_t tempL[4];
-        uint32_t tempR[4];
-        uint32_t key[KEY256 / 32];
-        memcpy(key, masterkey, KEY256 / 8);
-        uint32_t subkey[4];
-        uint32_t round_constant[4];
-        //uint64_t round_constant = 0;
+        //first half round encryption;
+        tempL[0] = L[0];
+        tempL[1] = L[1];
+        tempL[2] = L[2];
+        tempL[3] = L[3];
 
-        //initialize the plaintext as the first round input;
-        L[0] = plain[0];
-        L[1] = plain[1];
-        L[2] = plain[2];
-        L[3] = plain[3];
+        ShiftLanes(tempL);
 
-        R[0] = plain[4];
-        R[1] = plain[5];
-        R[2] = plain[6];
-        R[3] = plain[7];
-
-       //init round_constant
-        memset(round_constant, 0, sizeof(round_constant));
-
-        for (i = 1; i <= rounds; i++)
-        {
-            //first half round encryption;
-            tempL[0] = L[0];
-            tempL[1] = L[1];
-            tempL[2] = L[2];
-            tempL[3] = L[3];
-
-            ShiftLanes(tempL);
-
-            RotateKeyByte(key, KEY256);
-
-            subkey[0] = key[0];
-            subkey[1] = key[1];
-            subkey[2] = key[2];
-            subkey[3] = key[3];
-
-            //Modular add the subkey with the delta value;
-            //round_constant = round_constant + DELTA;
-            ADD128(round_constant, delta);
-            //AddRoundConstant(subkey, round_constant);
-            ADD128(subkey, round_constant);
-            //update the round key K_i with the subkey+delta_i
-            key[0] = subkey[0];
-            key[1] = subkey[1];
-            key[2] = subkey[2];
-            key[3] = subkey[3];
-
-
-            tempL[0] = tempL[0] ^ subkey[0];
-            tempL[1] = tempL[1] ^ subkey[1];
-            tempL[2] = tempL[2] ^ subkey[2];
-            tempL[3] = tempL[3] ^ subkey[3];
-
-            Beta(tempL);
-
-            SwitchLanes(tempL);
-
-            R[0] = R[0] ^ tempL[0];
-            R[1] = R[1] ^ tempL[1];
-            R[2] = R[2] ^ tempL[2];
-            R[3] = R[3] ^ tempL[3];
-
-            //Second half round encryption
-            tempR[0] = R[0];
-            tempR[1] = R[1];
-            tempR[2] = R[2];
-            tempR[3] = R[3];
-
-            ShiftLanes(tempR);
-
-            RotateKeyByte(key, KEY256);
-            subkey[0] = key[0];
-            subkey[1] = key[1];
-            subkey[2] = key[2];
-            subkey[3] = key[3];
-            ADD128(round_constant, delta);
-            //AddRoundConstant(subkey, round_constant);
-            ADD128(subkey, round_constant);
-            //update the round key K_i with the subkey+delta_i
-            key[0] = subkey[0];
-            key[1] = subkey[1];
-            key[2] = subkey[2];
-            key[3] = subkey[3];
-
-            tempR[0] = tempR[0] ^ subkey[0];
-            tempR[1] = tempR[1] ^ subkey[1];
-            tempR[2] = tempR[2] ^ subkey[2];
-            tempR[3] = tempR[3] ^ subkey[3];
-
-            Beta(tempR);
-
-            SwitchLanes(tempR);
-
-            L[0] = L[0] ^ tempR[0];
-            L[1] = L[1] ^ tempR[1];
-            L[2] = L[2] ^ tempR[2];
-            L[3] = L[3] ^ tempR[3];
-        }
-
-        //output the ciphertext;
-        cipher[0] = L[0];
-        cipher[1] = L[1];
-        cipher[2] = L[2];
-        cipher[3] = L[3];
-
-        cipher[4] = R[0];
-        cipher[5] = R[1];
-        cipher[6] = R[2];
-        cipher[7] = R[3];
-    }
-
-    void SWAN256_decrypt_rounds(const uint32_t *cipher, const uint32_t *masterkey, const uint8_t rounds, uint32_t *plain)
-    {
-        uint8_t i;
-        uint32_t L[4];
-        uint32_t R[4];
-        uint32_t tempL[4];
-        uint32_t tempR[4];
-        uint32_t key[KEY256 / 32];
-        memcpy(key, masterkey, KEY256 / 8);
-        uint32_t subkey[4];
-        uint32_t temp_constant[4];
-
-        memset(temp_constant, 0, sizeof(temp_constant));
-        //Rotate the key to the final round state;
-        for (i = 1; i <= 2 * rounds; i++)
-        {
-            RotateKeyByte(key, KEY256);
-
-            subkey[0] = key[0];
-            subkey[1] = key[1];
-            subkey[2] = key[2];
-            subkey[3] = key[3];
-
-            ADD128(temp_constant, delta);
-            ADD128(subkey, temp_constant);
-            key[0] = subkey[0];
-            key[1] = subkey[1];
-            key[2] = subkey[2];
-            key[3] = subkey[3];
-        }
         RotateKeyByte(key, KEY256);
 
-        uint32_t round_constant[4] = {DELTA_VER4, DELTA_VER3, DELTA_VER2, DELTA_VER1};
+        subkey[0] = key[0];
+        subkey[1] = key[1];
+        subkey[2] = key[2];
+        subkey[3] = key[3];
 
-        //initialize the ciphertext as the first decryption round input;
-        L[0] = cipher[0];
-        L[1] = cipher[1];
-        L[2] = cipher[2];
-        L[3] = cipher[3];
-
-        R[0] = cipher[4];
-        R[1] = cipher[5];
-        R[2] = cipher[6];
-        R[3] = cipher[7];
-
-        for (i = 1; i <= rounds; i++)
-        {
-            //First half round decryption;
-            tempR[0] = R[0];
-            tempR[1] = R[1];
-            tempR[2] = R[2];
-            tempR[3] = R[3];
-
-            ShiftLanes(tempR);
-
-            //Generate the final round decryption subkey;
-            InvRotateKeyByte(key, KEY256);
-            subkey[0] = key[0];
-            subkey[1] = key[1];
-            subkey[2] = key[2];
-            subkey[3] = key[3];
-
-            tempR[0] = tempR[0] ^ subkey[0];
-            tempR[1] = tempR[1] ^ subkey[1];
-            tempR[2] = tempR[2] ^ subkey[2];
-            tempR[3] = tempR[3] ^ subkey[3];
-
-            //Modular minus the subkey with the delta value;
-
-            MINUS128(round_constant, delta);
-
-            MINUS128(subkey, round_constant);
-
-            //update the round key K_i with the subkey+delta_i
-            key[0] = subkey[0];
-            key[1] = subkey[1];
-            key[2] = subkey[2];
-            key[3] = subkey[3];
-
-            Beta(tempR);
-
-            SwitchLanes(tempR);
-
-            L[0] = L[0] ^ tempR[0];
-            L[1] = L[1] ^ tempR[1];
-            L[2] = L[2] ^ tempR[2];
-            L[3] = L[3] ^ tempR[3];
-
-            tempL[0] = L[0];
-            tempL[1] = L[1];
-            tempL[2] = L[2];
-            tempL[3] = L[3];
-
-            //Second half round decryption
-            ShiftLanes(tempL);
-
-            //inverse rotate the key for subkey;
-
-            InvRotateKeyByte(key, KEY256);
-
-            subkey[0] = key[0];
-            subkey[1] = key[1];
-            subkey[2] = key[2];
-            subkey[3] = key[3];
-
-            tempL[0] = tempL[0] ^ subkey[0];
-            tempL[1] = tempL[1] ^ subkey[1];
-            tempL[2] = tempL[2] ^ subkey[2];
-            tempL[3] = tempL[3] ^ subkey[3];
+        //Modular add the subkey with the delta value;
+        //round_constant = round_constant + DELTA;
+        ADD128(round_constant, delta);
+        //AddRoundConstant(subkey, round_constant);
+        ADD128(subkey, round_constant);
+        //update the round key K_i with the subkey+delta_i
+        key[0] = subkey[0];
+        key[1] = subkey[1];
+        key[2] = subkey[2];
+        key[3] = subkey[3];
 
 
-            //Modular minus the subkey with the delta value;
+        tempL[0] = tempL[0] ^ subkey[0];
+        tempL[1] = tempL[1] ^ subkey[1];
+        tempL[2] = tempL[2] ^ subkey[2];
+        tempL[3] = tempL[3] ^ subkey[3];
 
-            MINUS128(round_constant, delta);
-            MINUS128(subkey, round_constant);
-            //update the round key K_i with the subkey+delta_i
-            key[0] = subkey[0];
-            key[1] = subkey[1];
-            key[2] = subkey[2];
-            key[3] = subkey[3];
+        Beta(tempL);
 
-            Beta(tempL);
+        ShiftLanes(tempL);
 
-            SwitchLanes(tempL);
+        SwitchLanes(tempL);
 
-            R[0] = tempL[0] ^ R[0];
-            R[1] = tempL[1] ^ R[1];
-            R[2] = tempL[2] ^ R[2];
-            R[3] = tempL[3] ^ R[3];
-        }
+        R[0] = R[0] ^ tempL[0];
+        R[1] = R[1] ^ tempL[1];
+        R[2] = R[2] ^ tempL[2];
+        R[3] = R[3] ^ tempL[3];
 
-        //output the plaintext;
-        plain[0] = L[0];
-        plain[1] = L[1];
-        plain[2] = L[2];
-        plain[3] = L[3];
+        //Second half round encryption
+        tempR[0] = R[0];
+        tempR[1] = R[1];
+        tempR[2] = R[2];
+        tempR[3] = R[3];
 
-        plain[4] = R[0];
-        plain[5] = R[1];
-        plain[6] = R[2];
-        plain[7] = R[3];
+        ShiftLanes(tempR);
+
+        RotateKeyByte(key, KEY256);
+        subkey[0] = key[0];
+        subkey[1] = key[1];
+        subkey[2] = key[2];
+        subkey[3] = key[3];
+        ADD128(round_constant, delta);
+        //AddRoundConstant(subkey, round_constant);
+        ADD128(subkey, round_constant);
+        //update the round key K_i with the subkey+delta_i
+        key[0] = subkey[0];
+        key[1] = subkey[1];
+        key[2] = subkey[2];
+        key[3] = subkey[3];
+
+        tempR[0] = tempR[0] ^ subkey[0];
+        tempR[1] = tempR[1] ^ subkey[1];
+        tempR[2] = tempR[2] ^ subkey[2];
+        tempR[3] = tempR[3] ^ subkey[3];
+
+        Beta(tempR);
+
+        ShiftLanes(tempR);
+
+        SwitchLanes(tempR);
+
+        L[0] = L[0] ^ tempR[0];
+        L[1] = L[1] ^ tempR[1];
+        L[2] = L[2] ^ tempR[2];
+        L[3] = L[3] ^ tempR[3];
     }
+
+    //output the ciphertext;
+    cipher[0] = L[0];
+    cipher[1] = L[1];
+    cipher[2] = L[2];
+    cipher[3] = L[3];
+
+    cipher[4] = R[0];
+    cipher[5] = R[1];
+    cipher[6] = R[2];
+    cipher[7] = R[3];
+}
+
+void SWAN256_decrypt_rounds(const uint32_t *cipher, const uint32_t *masterkey, const uint8_t rounds, uint32_t *plain)
+{
+    uint8_t i;
+    uint32_t L[4];
+    uint32_t R[4];
+    uint32_t tempL[4];
+    uint32_t tempR[4];
+    uint32_t key[KEY256 / 32];
+    memcpy(key, masterkey, KEY256 / 8);
+    uint32_t subkey[4];
+    uint32_t temp_constant[4];
+
+    memset(temp_constant, 0, sizeof(temp_constant));
+    //Rotate the key to the final round state;
+    for (i = 1; i <= 2 * rounds; i++)
+    {
+        RotateKeyByte(key, KEY256);
+
+        subkey[0] = key[0];
+        subkey[1] = key[1];
+        subkey[2] = key[2];
+        subkey[3] = key[3];
+
+        ADD128(temp_constant, delta);
+        ADD128(subkey, temp_constant);
+        key[0] = subkey[0];
+        key[1] = subkey[1];
+        key[2] = subkey[2];
+        key[3] = subkey[3];
+    }
+    
+    RotateKeyByte(key, KEY256);
+
+    uint32_t round_constant[4] = {DELTA_VER4, DELTA_VER3, DELTA_VER2, DELTA_VER1};
+
+    //initialize the ciphertext as the first decryption round input;
+    L[0] = cipher[0];
+    L[1] = cipher[1];
+    L[2] = cipher[2];
+    L[3] = cipher[3];
+
+    R[0] = cipher[4];
+    R[1] = cipher[5];
+    R[2] = cipher[6];
+    R[3] = cipher[7];
+
+    for (i = 1; i <= rounds; i++)
+    {
+        //First half round decryption;
+        tempR[0] = R[0];
+        tempR[1] = R[1];
+        tempR[2] = R[2];
+        tempR[3] = R[3];
+
+        ShiftLanes(tempR);
+
+        //Generate the final round decryption subkey;
+        InvRotateKeyByte(key, KEY256);
+        subkey[0] = key[0];
+        subkey[1] = key[1];
+        subkey[2] = key[2];
+        subkey[3] = key[3];
+
+        tempR[0] = tempR[0] ^ subkey[0];
+        tempR[1] = tempR[1] ^ subkey[1];
+        tempR[2] = tempR[2] ^ subkey[2];
+        tempR[3] = tempR[3] ^ subkey[3];
+
+        //Modular minus the subkey with the delta value;
+
+        MINUS128(round_constant, delta);
+
+        MINUS128(subkey, round_constant);
+
+        //update the round key K_i with the subkey+delta_i
+        key[0] = subkey[0];
+        key[1] = subkey[1];
+        key[2] = subkey[2];
+        key[3] = subkey[3];
+
+        Beta(tempR);
+
+        ShiftLanes(tempR);
+
+        SwitchLanes(tempR);
+
+        L[0] = L[0] ^ tempR[0];
+        L[1] = L[1] ^ tempR[1];
+        L[2] = L[2] ^ tempR[2];
+        L[3] = L[3] ^ tempR[3];
+
+        tempL[0] = L[0];
+        tempL[1] = L[1];
+        tempL[2] = L[2];
+        tempL[3] = L[3];
+
+        //Second half round decryption
+        ShiftLanes(tempL);
+
+        //inverse rotate the key for subkey;
+
+        InvRotateKeyByte(key, KEY256);
+
+        subkey[0] = key[0];
+        subkey[1] = key[1];
+        subkey[2] = key[2];
+        subkey[3] = key[3];
+
+        tempL[0] = tempL[0] ^ subkey[0];
+        tempL[1] = tempL[1] ^ subkey[1];
+        tempL[2] = tempL[2] ^ subkey[2];
+        tempL[3] = tempL[3] ^ subkey[3];
+
+
+        //Modular minus the subkey with the delta value;
+
+        MINUS128(round_constant, delta);
+        MINUS128(subkey, round_constant);
+        //update the round key K_i with the subkey+delta_i
+        key[0] = subkey[0];
+        key[1] = subkey[1];
+        key[2] = subkey[2];
+        key[3] = subkey[3];
+
+        Beta(tempL);
+
+        ShiftLanes(tempL);
+
+        SwitchLanes(tempL);
+
+        R[0] = tempL[0] ^ R[0];
+        R[1] = tempL[1] ^ R[1];
+        R[2] = tempL[2] ^ R[2];
+        R[3] = tempL[3] ^ R[3];
+    }
+
+    //output the plaintext;
+    plain[0] = L[0];
+    plain[1] = L[1];
+    plain[2] = L[2];
+    plain[3] = L[3];
+
+    plain[4] = R[0];
+    plain[5] = R[1];
+    plain[6] = R[2];
+    plain[7] = R[3];
+}
 
 
 #endif // SWAN256_H_INCLUDED

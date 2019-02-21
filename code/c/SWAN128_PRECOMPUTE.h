@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018,
+ * Copyright (c) 2018,2019.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  *  Description: SWAN128 with a clear structure. The key schedule is precomputed.
  *  Created on: 2018-12-24
- *  Last modified: 2019-01-13
- *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang.
+ *  Last modified: 2019-02-21
+ *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang, Zhaoji Xu, Yingjie Zhang.
  */
 
 #ifndef SWAN128_H_INCLUDED
@@ -48,7 +48,7 @@
 #define KEY256 256
 
 #define A 1
-#define B 7
+#define B 3
 #define C 13
 
 //For SWAN128 DELTA = 2^64 / golden ration
@@ -196,13 +196,6 @@ void SWAN128_K128_encrypt_rounds(const uint16_t *plain, uint16_t *_key, const ui
     R[2] = plain[6];
     R[3] = plain[7];
 
-    //whitening input
-    //    __u8 * a = (__u8 *)&(subkey[0]);
-    //    L[0] = L[0] ^ a[0];
-    //    L[1] = L[1] ^ a[1];
-    //    L[2] = L[2] ^ a[2];
-    //    L[3] = L[3] ^ a[3];
-
     for (i = 1; i <= rounds; i++)
     {
         //first half round encryption;
@@ -234,6 +227,8 @@ void SWAN128_K128_encrypt_rounds(const uint16_t *plain, uint16_t *_key, const ui
         tempL[3] = tempL[3] ^ subkey[3];
 
         Beta(tempL);
+
+        ShiftLanes(tempL);
 
         SwitchLanes(tempL);
 
@@ -270,6 +265,8 @@ void SWAN128_K128_encrypt_rounds(const uint16_t *plain, uint16_t *_key, const ui
 
         Beta(tempR);
 
+        ShiftLanes(tempR);
+
         SwitchLanes(tempR);
 
         L[0] = L[0] ^ tempR[0];
@@ -289,6 +286,8 @@ void SWAN128_K128_encrypt_rounds(const uint16_t *plain, uint16_t *_key, const ui
     cipher[6] = R[2];
     cipher[7] = R[3];
 }
+
+
 void GenerateKey(uint16_t *_key, uint8_t rounds, uint16_t *keyarray, uint32_t keysize)
 {
     uint8_t i;
@@ -333,32 +332,6 @@ void SWAN128_K128_decrypt_rounds(const uint16_t *cipher, uint16_t *_key, const u
 
     uint64_t round_constant = 0;
 
-    //Rotate the key to the final round state;
-    // for (i = 1; i <= 2 * rounds; i++)
-    // {
-    //     RotateKeyByte(key, KEY128);
-
-    //     subkey[0] = key[0];
-    //     subkey[1] = key[1];
-    //     subkey[2] = key[2];
-    //     subkey[3] = key[3];
-    //     round_constant = round_constant + DELTA;
-    //     AddRoundConstant(subkey, round_constant);
-
-    //     ekey[i][0] = subkey[0];
-    //     ekey[i][1] = subkey[1];
-    //     ekey[i][2] = subkey[2];
-    //     ekey[i][3] = subkey[3];
-
-    //     key[0] = subkey[0];
-    //     key[1] = subkey[1];
-    //     key[2] = subkey[2];
-    //     key[3] = subkey[3];
-    // }
-    // RotateKeyByte(key, KEY128);
-
-    // round_constant = INV_DELTA_KEY128;
-
     //initialize the ciphertext as the first decryption round input;
     L[0] = cipher[0];
     L[1] = cipher[1];
@@ -393,16 +366,10 @@ void SWAN128_K128_decrypt_rounds(const uint16_t *cipher, uint16_t *_key, const u
         tempR[2] = tempR[2] ^ subkey[2];
         tempR[3] = tempR[3] ^ subkey[3];
 
-        //Modular minus the subkey with the delta value;
-        // round_constant = round_constant - DELTA;
-        // MINUSRoundConstant(subkey, round_constant);
-        //update the round key K_i with the subkey+delta_i
-        // key[0] = subkey[0];
-        // key[1] = subkey[1];
-        // key[2] = subkey[2];
-        // key[3] = subkey[3];
 
         Beta(tempR);
+
+        ShiftLanes(tempR);
 
         SwitchLanes(tempR);
 
@@ -420,12 +387,6 @@ void SWAN128_K128_decrypt_rounds(const uint16_t *cipher, uint16_t *_key, const u
         ShiftLanes(tempL);
 
         //inverse rotate the key for subkey;
-        // InvRotateKeyByte(key, KEY128);
-
-        // subkey[0] = key[0];
-        // subkey[1] = key[1];
-        // subkey[2] = key[2];
-        // subkey[3] = key[3];
         subkey[0] = ekey[2 * rounds + 1 - (2 * i)][0];
         subkey[1] = ekey[2 * rounds + 1 - (2 * i)][1];
         subkey[2] = ekey[2 * rounds + 1 - (2 * i)][2];
@@ -435,16 +396,11 @@ void SWAN128_K128_decrypt_rounds(const uint16_t *cipher, uint16_t *_key, const u
         tempL[1] = tempL[1] ^ subkey[1];
         tempL[2] = tempL[2] ^ subkey[2];
         tempL[3] = tempL[3] ^ subkey[3];
-        //Modular minus the subkey with the delta value;
-        // round_constant = round_constant - DELTA;
-        // MINUSRoundConstant(subkey, round_constant);
-        // //update the round key K_i with the subkey+delta_i
-        // key[0] = subkey[0];
-        // key[1] = subkey[1];
-        // key[2] = subkey[2];
-        // key[3] = subkey[3];
+
 
         Beta(tempL);
+
+        ShiftLanes(tempL);
 
         SwitchLanes(tempL);
 
@@ -489,12 +445,6 @@ void SWAN128_K256_encrypt_rounds(const uint16_t *plain, uint16_t *_key, const ui
     R[2] = plain[6];
     R[3] = plain[7];
 
-    //whitening input
-    //    __u8 * a = (__u8 *)&(subkey[0]);
-    //    L[0] = L[0] ^ a[0];
-    //    L[1] = L[1] ^ a[1];
-    //    L[2] = L[2] ^ a[2];
-    //    L[3] = L[3] ^ a[3];
 
     for (i = 1; i <= rounds; i++)
     {
@@ -527,6 +477,8 @@ void SWAN128_K256_encrypt_rounds(const uint16_t *plain, uint16_t *_key, const ui
         tempL[3] = tempL[3] ^ subkey[3];
 
         Beta(tempL);
+
+        ShiftLanes(tempL);
 
         SwitchLanes(tempL);
 
@@ -563,6 +515,8 @@ void SWAN128_K256_encrypt_rounds(const uint16_t *plain, uint16_t *_key, const ui
 
         Beta(tempR);
 
+        ShiftLanes(tempR);
+
         SwitchLanes(tempR);
 
         L[0] = L[0] ^ tempR[0];
@@ -596,33 +550,6 @@ void SWAN128_K256_decrypt_rounds(const uint16_t *cipher, uint16_t *_key, const u
 
     uint64_t round_constant = 0;
 
-    //Rotate the key to the final round state;
-    // for (i = 1; i <= 2 * rounds; i++)
-    // {
-    //     RotateKeyByte(key, KEY256);
-
-    //     subkey[0] = key[0];
-    //     subkey[1] = key[1];
-    //     subkey[2] = key[2];
-    //     subkey[3] = key[3];
-    //     round_constant = round_constant + DELTA;
-    //     AddRoundConstant(subkey, round_constant);
-
-    //     ekey[i][0] = subkey[0];
-    //     ekey[i][1] = subkey[1];
-    //     ekey[i][2] = subkey[2];
-    //     ekey[i][3] = subkey[3];
-
-    //     key[0] = subkey[0];
-    //     key[1] = subkey[1];
-    //     key[2] = subkey[2];
-    //     key[3] = subkey[3];
-    // }
-    // dump(ekey,sizeof(ekey));
-    // printf("\n");
-    // RotateKeyByte(key, KEY128);
-
-    // round_constant = INV_DELTA_KEY128;
 
     //initialize the ciphertext as the first decryption round input;
     L[0] = cipher[0];
@@ -646,8 +573,6 @@ void SWAN128_K256_decrypt_rounds(const uint16_t *cipher, uint16_t *_key, const u
         ShiftLanes(tempR);
 
         //Generate the final round decryption subkey;
-        // InvRotateKeyByte(key, KEY128);
-
         subkey[0] = ekey[2 * rounds + 1 - (2 * i - 1)][0];
         subkey[1] = ekey[2 * rounds + 1 - (2 * i - 1)][1];
         subkey[2] = ekey[2 * rounds + 1 - (2 * i - 1)][2];
@@ -658,16 +583,9 @@ void SWAN128_K256_decrypt_rounds(const uint16_t *cipher, uint16_t *_key, const u
         tempR[2] = tempR[2] ^ subkey[2];
         tempR[3] = tempR[3] ^ subkey[3];
 
-        //Modular minus the subkey with the delta value;
-        // round_constant = round_constant - DELTA;
-        // MINUSRoundConstant(subkey, round_constant);
-        //update the round key K_i with the subkey+delta_i
-        // key[0] = subkey[0];
-        // key[1] = subkey[1];
-        // key[2] = subkey[2];
-        // key[3] = subkey[3];
-
         Beta(tempR);
+
+        ShiftLanes(tempR);
 
         SwitchLanes(tempR);
 
@@ -685,12 +603,6 @@ void SWAN128_K256_decrypt_rounds(const uint16_t *cipher, uint16_t *_key, const u
         ShiftLanes(tempL);
 
         //inverse rotate the key for subkey;
-        // InvRotateKeyByte(key, KEY128);
-
-        // subkey[0] = key[0];
-        // subkey[1] = key[1];
-        // subkey[2] = key[2];
-        // subkey[3] = key[3];
         subkey[0] = ekey[2 * rounds + 1 - (2 * i)][0];
         subkey[1] = ekey[2 * rounds + 1 - (2 * i)][1];
         subkey[2] = ekey[2 * rounds + 1 - (2 * i)][2];
@@ -700,16 +612,11 @@ void SWAN128_K256_decrypt_rounds(const uint16_t *cipher, uint16_t *_key, const u
         tempL[1] = tempL[1] ^ subkey[1];
         tempL[2] = tempL[2] ^ subkey[2];
         tempL[3] = tempL[3] ^ subkey[3];
-        //Modular minus the subkey with the delta value;
-        // round_constant = round_constant - DELTA;
-        // MINUSRoundConstant(subkey, round_constant);
-        // //update the round key K_i with the subkey+delta_i
-        // key[0] = subkey[0];
-        // key[1] = subkey[1];
-        // key[2] = subkey[2];
-        // key[3] = subkey[3];
+
 
         Beta(tempL);
+
+        ShiftLanes(tempL);
 
         SwitchLanes(tempL);
 

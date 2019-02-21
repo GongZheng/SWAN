@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018,
+ * Copyright (c) 2018,2019.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  *  Description: SWAN64 with a clear structure. The key schedule is on-the-fly computed.
  *  Created on: 2018-12-24
- *  Last modified: 2019-01-13
- *  Author: Zheng Gong, Weijie Li, Guohong Liao, Tao Sun, Guojun Tang, Bing Sun, Siwei Sun.
+ *  Last modified: 2019-02-21
+ *  Author: Zheng Gong, Weijie Li, Guohong Liao, Tao Sun, Guojun Tang, Bing Sun, Siwei Sun, Zhaoji Xu, Yingjie Zhang.
  */
 
 #ifndef SWAN64_H_INCLUDED
@@ -49,8 +49,8 @@
 #define KEY256 256
 
 #define A 1
-#define B 3
-#define C 5
+#define B 2
+#define C 7
 
 //For SWAN64 DELTA = 2^32 / golden ration
 // #define DELTA 0x9e3779b9
@@ -95,12 +95,6 @@ void ShiftLanes(uint8_t a[4])
 //SwitchLane:The second affine function after the Beta function;
 void SwitchLanes(uint8_t a[4])
 {
-//    uint8_t temp;
-//    temp = a[3];
-//    a[3] = a[2];
-//    a[2] = a[1];
-//    a[1] = a[0];
-//    a[0] = temp;
       uint8_t b[4];
       b[0] = a[1] ^ a[2] ^ a[3];
       b[1] = a[0] ^ a[2] ^ a[3];
@@ -179,6 +173,7 @@ void MINUSRoundConstant(uint8_t *subkey, uint32_t sum)
     subkey[2] = b[2];
     subkey[3] = b[3];
 }
+
 void SWAN64_K128_encrypt_rounds(const uint8_t *plain, const uint8_t *masterkey, const uint8_t rounds, uint8_t *cipher)
 {
     uint8_t i;
@@ -234,6 +229,8 @@ void SWAN64_K128_encrypt_rounds(const uint8_t *plain, const uint8_t *masterkey, 
 
         Beta(tempL);
 
+        ShiftLanes(tempL);
+
         SwitchLanes(tempL);
 
         R[0] = R[0] ^ tempL[0];
@@ -268,6 +265,8 @@ void SWAN64_K128_encrypt_rounds(const uint8_t *plain, const uint8_t *masterkey, 
         tempR[3] = tempR[3] ^ subkey[3];
 
         Beta(tempR);
+
+        ShiftLanes(tempR);
 
         SwitchLanes(tempR);
 
@@ -316,6 +315,7 @@ void SWAN64_K128_decrypt_rounds(const uint8_t *cipher, const uint8_t *masterkey,
         key[2] = subkey[2];
         key[3] = subkey[3];
     }
+    
     RotateKeyByte(key, KEY128);
 
     round_constant = INV_DELTA_KEY128;
@@ -364,6 +364,8 @@ void SWAN64_K128_decrypt_rounds(const uint8_t *cipher, const uint8_t *masterkey,
 
         Beta(tempR);
 
+        ShiftLanes(tempR);
+
         SwitchLanes(tempR);
 
         L[0] = L[0] ^ tempR[0];
@@ -402,6 +404,8 @@ void SWAN64_K128_decrypt_rounds(const uint8_t *cipher, const uint8_t *masterkey,
         key[3] = subkey[3];
 
         Beta(tempL);
+
+        ShiftLanes(tempR);
 
         SwitchLanes(tempL);
 
@@ -479,6 +483,8 @@ void SWAN64_K256_encrypt_rounds(const uint8_t *plain, const uint8_t *masterkey, 
 
         Beta(tempL);
 
+        ShiftLanes(tempL);
+
         SwitchLanes(tempL);
 
         R[0] = R[0] ^ tempL[0];
@@ -513,6 +519,8 @@ void SWAN64_K256_encrypt_rounds(const uint8_t *plain, const uint8_t *masterkey, 
         tempR[3] = tempR[3] ^ subkey[3];
 
         Beta(tempR);
+
+        ShiftLanes(tempR);
 
         SwitchLanes(tempR);
 
@@ -561,6 +569,7 @@ void SWAN64_K256_decrypt_rounds(const uint8_t *cipher, const uint8_t *masterkey,
         key[2] = subkey[2];
         key[3] = subkey[3];
     }
+    
     RotateKeyByte(key, KEY256);
 
     round_constant = INV_DELTA_KEY256;
@@ -609,6 +618,8 @@ void SWAN64_K256_decrypt_rounds(const uint8_t *cipher, const uint8_t *masterkey,
 
         Beta(tempR);
 
+        ShiftLanes(tempR);
+
         SwitchLanes(tempR);
 
         L[0] = L[0] ^ tempR[0];
@@ -647,6 +658,8 @@ void SWAN64_K256_decrypt_rounds(const uint8_t *cipher, const uint8_t *masterkey,
         key[3] = subkey[3];
 
         Beta(tempL);
+
+        ShiftLanes(tempL);
 
         SwitchLanes(tempL);
 

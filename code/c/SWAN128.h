@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018,
+ * Copyright (c) 2018,2019.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  *
  *  Description: SWAN128 with a clear structure. The key schedule is on-the-fly computed.
  *  Created on: 2018-12-24
- *  Last modified: 2019-01-13
- *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang.
+ *  Last modified: 2019-02-21
+ *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang, Zhaoji Xu, Yingjie Zhang.
  */
 
 
@@ -49,7 +49,7 @@
 #define KEY256 256
 
 #define A 1
-#define B 7
+#define B 3
 #define C 13
 
 //For SWAN128 DELTA = 2^64 / golden ration
@@ -97,12 +97,6 @@ void ShiftLanes(uint16_t a[4])
 //SwitchLanes:The second affine function after the Beta function;
 void SwitchLanes(uint16_t a[4])
 {
-//    uint8_t temp;
-//    temp = a[3];
-//    a[3] = a[2];
-//    a[2] = a[1];
-//    a[1] = a[0];
-//    a[0] = temp;
       uint16_t b[4];
       b[0] = a[1] ^ a[2] ^ a[3];
       b[1] = a[0] ^ a[2] ^ a[3];
@@ -132,6 +126,7 @@ void RotateKeyByte(uint8_t *key, uint16_t keylength)
        key[(keylength / 8) - (7-i)] = temp[i];
    }
 }
+
 void InvRotateKeyByte(uint8_t *key, uint16_t keylength)
 {
     uint8_t i;
@@ -163,6 +158,7 @@ void AddRoundConstant(uint16_t *subkey, uint64_t sum)
     subkey[2] = b[2];
     subkey[3] = b[3];
 }
+
 void MINUSRoundConstant(uint16_t *subkey, uint64_t sum)
 {
 
@@ -233,6 +229,8 @@ void SWAN128_K128_encrypt_rounds(const uint16_t *plain, const uint16_t *masterke
 
         Beta(tempL);
 
+        ShiftLanes(tempL);
+
         SwitchLanes(tempL);
 
         R[0] = R[0] ^ tempL[0];
@@ -267,6 +265,8 @@ void SWAN128_K128_encrypt_rounds(const uint16_t *plain, const uint16_t *masterke
         tempR[3] = tempR[3] ^ subkey[3];
 
         Beta(tempR);
+
+        ShiftLanes(tempR);
 
         SwitchLanes(tempR);
 
@@ -316,6 +316,7 @@ void SWAN128_K128_decrypt_rounds(const uint16_t *cipher, const uint16_t *masterk
         key[2] = subkey[2];
         key[3] = subkey[3];
     }
+    
     RotateKeyByte(key, KEY128);
 
     round_constant = INV_DELTA_KEY128;
@@ -367,6 +368,8 @@ void SWAN128_K128_decrypt_rounds(const uint16_t *cipher, const uint16_t *masterk
 
         Beta(tempR);
 
+        ShiftLanes(tempR);
+
         SwitchLanes(tempR);
 
         L[0] = L[0] ^ tempR[0];
@@ -405,8 +408,9 @@ void SWAN128_K128_decrypt_rounds(const uint16_t *cipher, const uint16_t *masterk
         key[3] = subkey[3];
 
 
-
         Beta(tempL);
+
+        ShiftLanes(tempL);
 
         SwitchLanes(tempL);
 
@@ -451,12 +455,6 @@ void SWAN128_K256_encrypt_rounds(const uint16_t *plain, const uint16_t *masterke
     R[2] = plain[6];
     R[3] = plain[7];
 
-    //whitening input
-    //    __u8 * a = (__u8 *)&(subkey[0]);
-    //    L[0] = L[0] ^ a[0];
-    //    L[1] = L[1] ^ a[1];
-    //    L[2] = L[2] ^ a[2];
-    //    L[3] = L[3] ^ a[3];
 
     for (i = 1; i <= rounds; i++)
     {
@@ -489,6 +487,8 @@ void SWAN128_K256_encrypt_rounds(const uint16_t *plain, const uint16_t *masterke
         tempL[3] = tempL[3] ^ subkey[3];
 
         Beta(tempL);
+
+        ShiftLanes(tempL);
 
         SwitchLanes(tempL);
 
@@ -524,6 +524,8 @@ void SWAN128_K256_encrypt_rounds(const uint16_t *plain, const uint16_t *masterke
         tempR[3] = tempR[3] ^ subkey[3];
 
         Beta(tempR);
+
+        ShiftLanes(tempR);
 
         SwitchLanes(tempR);
 
@@ -573,6 +575,7 @@ void SWAN128_K256_decrypt_rounds(const uint16_t *cipher, const uint16_t *masterk
         key[2] = subkey[2];
         key[3] = subkey[3];
     }
+    
     RotateKeyByte(key, KEY256);
 
     round_constant = INV_DELTA_KEY256;
@@ -621,6 +624,8 @@ void SWAN128_K256_decrypt_rounds(const uint16_t *cipher, const uint16_t *masterk
 
         Beta(tempR);
 
+        ShiftLanes(tempR);
+
         SwitchLanes(tempR);
 
         L[0] = L[0] ^ tempR[0];
@@ -659,6 +664,8 @@ void SWAN128_K256_decrypt_rounds(const uint16_t *cipher, const uint16_t *masterk
         key[3] = subkey[3];
 
         Beta(tempL);
+
+        ShiftLanes(tempL);
 
         SwitchLanes(tempL);
 
