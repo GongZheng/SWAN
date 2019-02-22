@@ -407,7 +407,7 @@ void SWAN64_K128_decrypt_rounds(const uint8_t *cipher, const uint8_t *masterkey,
 
         Beta(tempL);
 
-        ShiftLanes(tempR);
+        ShiftLanes(tempL);
 
         SwitchLanes(tempL);
 
