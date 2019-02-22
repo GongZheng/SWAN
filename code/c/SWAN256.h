@@ -147,35 +147,14 @@ void RotateKeyByte(uint8_t *key, uint16_t keylength)
 {
     uint8_t i;
     uint8_t temp[15];
-
+    uint8_t N = keylength / 8 - 1;
     for (i = 0; i < 15; i++)
     {
-        temp[i] = key[i];
+        temp[14 - i] = key[N - i];
     }
 
     //Right rotate every byte of the key;
-    for (i = 0; i < (keylength / 8) - 1; i++)
-    {
-        key[i] = key[i + 15];
-    }
-
-    //Cyclic the first byte of the key to the MSB;
-    for (i = 0; i < 15; i++)
-    {
-        key[(keylength / 8) - (15 - i)] = temp[i];
-    }
-}
-
-void InvRotateKeyByte(uint8_t *key, uint16_t keylength)
-{
-    uint8_t i;
-    uint8_t temp[15];
-    for (i = 0; i < 15; i++)
-    {
-        temp[i] = key[(keylength / 8) - (15 - i)];
-    }
-    //Right rotate every byte of the key;
-    for (i = (keylength / 8) - 1; i > 0; i--)
+    for (i = N; i >= 15; i--)
     {
         key[i] = key[i - 15];
     }
@@ -187,6 +166,28 @@ void InvRotateKeyByte(uint8_t *key, uint16_t keylength)
     }
 }
 
+void InvRotateKeyByte(uint8_t *key, uint16_t keylength)
+{
+    uint8_t i;
+    uint8_t temp[15];
+    uint8_t N = keylength / 8 - 1;
+    for (i = 0; i < 15; i++)
+    {
+        temp[i] = key[i];
+    }
+
+    //Right rotate every byte of the key;
+    for (i = 0; i <= N - 15; i++)
+    {
+        key[i] = key[i + 15];
+    }
+
+    //Cyclic the first byte of the key to the MSB;
+    for (i = 0; i < 15; i++)
+    {
+        key[(N + 1) - 15 + i] = temp[i];
+    }
+}
 
 void SWAN256_encrypt_rounds(const uint32_t *plain, const uint32_t *masterkey, const uint8_t rounds, uint32_t *cipher)
 {
