@@ -109,34 +109,14 @@ void RotateKeyByte(uint8_t *key, uint16_t keylength)
 {
     uint8_t i;
     uint8_t temp[7];
-
+    uint8_t N = keylength / 8 - 1;
     for (i = 0; i < 7; i++)
     {
-        temp[i] = key[i];
+        temp[6 - i] = key[N - i];
     }
 
     //Right rotate every byte of the key;
-    for (i = 0; i < (keylength / 8) - 1; i++)
-    {
-        key[i] = key[i + 7];
-    }
-
-    //Cyclic the first byte of the key to the MSB;
-    for (i = 0; i < 7; i++)
-    {
-        key[(keylength / 8) - (7 - i)] = temp[i];
-    }
-}
-void InvRotateKeyByte(uint8_t *key, uint16_t keylength)
-{
-    uint8_t i;
-    uint8_t temp[7];
-    for (i = 0; i < 7; i++)
-    {
-        temp[i] = key[(keylength / 8) - (7 - i)];
-    }
-    //Right rotate every byte of the key;
-    for (i = (keylength / 8) - 1; i > 0; i--)
+    for (i = N; i >= 7; i--)
     {
         key[i] = key[i - 7];
     }
@@ -145,6 +125,29 @@ void InvRotateKeyByte(uint8_t *key, uint16_t keylength)
     for (i = 0; i < 7; i++)
     {
         key[i] = temp[i];
+    }
+}
+
+void InvRotateKeyByte(uint8_t *key, uint16_t keylength)
+{
+    uint8_t i;
+    uint8_t temp[7];
+    uint8_t N = keylength / 8 - 1;
+    for (i = 0; i < 7; i++)
+    {
+        temp[i] = key[i];
+    }
+
+    //Right rotate every byte of the key;
+    for (i = 0; i <= N - 7; i++)
+    {
+        key[i] = key[i + 7];
+    }
+
+    //Cyclic the first byte of the key to the MSB;
+    for (i = 0; i < 7; i++)
+    {
+        key[(N + 1) - 7 + i] = temp[i];
     }
 }
 
