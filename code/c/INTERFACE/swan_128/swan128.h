@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018,
+ * Copyright (c) 2018,2019.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,11 @@
 /*
  *  SWAN128.h
  *
- *  Description: SWAN128 with a clear structure. The key schedule is precomputed.
+ *  Description: SWAN128 with a clear structure. The key schedule is on-the-fly computed.
  *  Created on: 2018-12-24
- *  Last modified: 2019-01-13
- *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang.
+ *  Last modified: 2019-02-21
+ *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang, Zhaoji Xu, Yingjie Zhang.
  */
-
 #ifndef SWAN128_H_INCLUDED
 #define SWAN128_H_INCLUDED
 #include <stdio.h>
@@ -48,7 +47,7 @@
 #define KEY256 256
 
 #define A 1
-#define B 7
+#define B 3
 #define C 13
 
 //For SWAN128 DELTA = 2^64 / golden ration
