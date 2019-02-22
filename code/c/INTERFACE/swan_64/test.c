@@ -21,16 +21,6 @@ void dump(const uint8_t *li, int len)
         }
     }
 }
-// uint64_t start_rdtsc()
-// {
-//     return __rdtsc();
-// }
-
-// uint64_t end_rdtsc()
-// {
-//     return __rdtsc();
-// }
-
 uint64_t start_rdtsc()
 {
     uint32_t cycles_high, cycles_low;
@@ -135,10 +125,12 @@ int main()
     printf("\nSWAN64K256 decrypt cost %llu CPU cycles\n", (ans) / TEST);
 
     printf("round test-swan128-128:\n");
+    Key_Schedule(key, 128, 1, subkey);
     Crypt_Enc_Block_Round(in, 64, out, 64, subkey, 128, 1);
     dump(out, sizeof(out));
     printf("\nround test-swan128-256:\n");
-    Crypt_Enc_Block_Round(in, 64, out, 64, key, 256, 1);
+    Key_Schedule(key, 256, 1, subkey);
+    Crypt_Enc_Block_Round(in, 64, out, 64, subkey, 256, 1);
     dump(out, sizeof(out));
     printf("\n");
 
