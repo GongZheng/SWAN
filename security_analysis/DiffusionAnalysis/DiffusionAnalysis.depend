@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1551231522 source:c:\users\nc_gz\documents\swan\security_analysis\diffusionanalysis\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdint.h>
+	<math.h>
+	<string.h>
+	"SWAN256Diffusion.h"
+
+1551230626 c:\users\nc_gz\documents\swan\security_analysis\diffusionanalysis\swan128diffusion.h
+
+1551231583 c:\users\nc_gz\documents\swan\security_analysis\diffusionanalysis\swan256diffusion.h
+

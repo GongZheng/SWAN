@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1550633946 source:c:\users\nc_gz\repository\swan\security_analysis\diffusionanalysis\thetaanalysis\thetaanalysis\main.c
+	<stdio.h>
+	<stdlib.h>
+
