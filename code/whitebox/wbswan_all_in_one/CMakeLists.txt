@@ -6,7 +6,7 @@ PROJECT(wbswan)
 
 #3.head file path，头文件目录
 INCLUDE_DIRECTORIES(include)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -std=c99 -g3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -std=c99 -g3")
 #4.source directory，源文件目录
 AUX_SOURCE_DIRECTORY(library LIB_SRCS)
 AUX_SOURCE_DIRECTORY(library/m4ri LIB_SRCS)
