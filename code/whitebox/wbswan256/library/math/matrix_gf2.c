@@ -118,15 +118,20 @@ uint32_t AddMatToU32(const MatGf2 a,const uint32_t b)
 	MatGf2 mat = GenMatGf2(32, 1);
 	InitVecFromBit(b, mat);
 	mat = mzd_add(NULL, a, mat);
-	return get32FromVec(mat);
+	uint32_t r =  get32FromVec(mat);
+	MatGf2Free(mat);
+	return r;
 }
 
 uint64_t AddMatToU64(const MatGf2 a, const uint64_t b)
 {
 	MatGf2 mat = GenMatGf2(64, 1);
-	InitVecFromBit(b, mat);
+	InitVecFromBit_64(b, mat);
 	mat = mzd_add(NULL, a, mat);
-	return get64FromVec(mat);
+	uint64_t r = get64FromVec(mat);
+	MatGf2Free(mat);
+	return r;
+	
 }
 
 MatGf2 GenMatGf2Copy(const MatGf2 source) {
@@ -187,6 +192,29 @@ int InitVecFromBit(unsigned long data, MatGf2 mat) {
 	return 0;
 }
 
+int InitVecFromBit_64(uint64_t data, MatGf2 mat)
+{
+	long i;
+	uint64_t t = data;
+	for (i = mat->nrows - 1; i >= 0; i--)
+	{
+		MatGf2Set(mat, i, 0, t % 2);
+		t >>= 1;
+	}
+	return 0;
+}
+
+int InitVecFromBit_128(__uint128_t data, MatGf2 mat)
+{
+	long i;
+	__uint128_t t = data;
+	for (i = mat->nrows - 1; i >= 0; i--)
+	{
+		MatGf2Set(mat, i, 0, t % 2);
+		t >>= 1;
+	}
+	return 0;
+}
 
 int MatGf2Set(MatGf2 mat, int row, int col, int value) {
     mzd_write_bit(mat, row, col ,value%2);
@@ -419,25 +447,22 @@ uint32_t ApplyMatToU32(const MatGf2 mat, uint32_t data) {
 uint64_t ApplyMatToU64(const MatGf2 mat, uint64_t data)
 {
 	MatGf2 a = GenMatGf2(64, 1);
-	InitVecFromBit(data, a);
+	InitVecFromBit_64(data, a);
 	MatGf2Mul(mat, a, &a);
 	uint64_t result = (uint64_t)get64FromVec(a);
 	MatGf2Free(a);
 	return result;
 }
-int InitVecFromBit_128(__uint128_t data, MatGf2 mat)
+__uint128_t AddMatToU128(const MatGf2 mat, __uint128_t x)
 {
-	long i;
-	__uint128_t t = data;
-	for (i = mat->nrows - 1; i >= 0; i--)
-	{
-		MatGf2Set(mat, i, 0, t % 2);
-		t >>= 1;
-	}
-	return 0;
+	MatGf2 mat_x = NULL;
+	ReAllocatedMatGf2(128, 1, &mat_x);
+	InitVecFromBit_128(x, mat_x);
+	MatGf2Add(mat, mat_x, &mat_x);
+	__uint128_t result = get128FromVec(mat_x);
+	MatGf2Free(mat_x);
+	return result;
 }
-
-
 
 
 
@@ -451,16 +476,7 @@ __uint128_t ApplyMatToU128(const MatGf2 mat, __uint128_t data)
 	return result;
 }
 
-__uint128_t AddMatToU128(const MatGf2 mat, __uint128_t x)
-{
-	MatGf2 mat_x = NULL;
-	ReAllocatedMatGf2(128, 1, &mat_x);
-	InitVecFromBit_128(x, mat_x);
-	MatGf2Add(mat, mat_x, &mat_x);
-	__uint128_t result = get128FromVec(mat_x);
-	MatGf2Free(mat_x);
-	return result;
-}
+
 
 int MatGf2Cmp(const MatGf2 a, const MatGf2 b) {
     return mzd_cmp(a, b);

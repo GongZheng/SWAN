@@ -108,6 +108,10 @@ int InitMatrixFromBitArray(unsigned long *data, MatGf2 mat);
  * */
 int InitVecFromBit(unsigned long data, MatGf2 mat);
 
+int InitVecFromBit_64(uint64_t data, MatGf2 mat);
+
+int InitVecFromBit_128(__uint128_t data, MatGf2 mat);
+
 int MatGf2Set(MatGf2 mat, int row, int col, int value);
 
 int MatGf2Get(MatGf2 mat, int row, int col);
@@ -144,12 +148,18 @@ uint64_t get64FromVec(const MatGf2 vec);
 
 uint32_t getDigitalFromVec(const MatGf2 vec);
 
-/**
+__uint128_t ApplyMatToU128(const MatGf2 mat, __uint128_t data);
+
+__uint128_t AddMatToU128(const MatGf2 mat, __uint128_t x);
+
+__uint128_t get128FromVec(const MatGf2 vec);
+
+    /**
  * Stack A on top of B and write the result to dst.
  * [ A ], [ B ] -> [ A ] = dst
  *                 [ B ]
  * */
-int MatGf2Stack(const MatGf2 a, const MatGf2 b, MatGf2 *dst);
+    int MatGf2Stack(const MatGf2 a, const MatGf2 b, MatGf2 *dst);
 
 /**
  * Concatenate B to A and write the result to dst.

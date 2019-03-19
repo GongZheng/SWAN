@@ -75,6 +75,9 @@ int ReAllocatedMatGf2(int r, int c, MatGf2 *mat);
 
 int ReAllocatedRandomMatGf2(int r, int c, MatGf2* mat);
 
+
+uint64_t AddMatToU64(const MatGf2 a, const uint64_t b);
+
 int ReAllocatedInvertibleMatGf2(int r, int c, MatGf2 *dst);
 
 /**
@@ -104,6 +107,10 @@ int InitMatrixFromBitArray(unsigned long *data, MatGf2 mat);
  * [ 1 ]
  * */
 int InitVecFromBit(unsigned long data, MatGf2 mat);
+
+int InitVecFromBit_64(uint64_t data, MatGf2 mat);
+
+int InitVecFromBit_128(__uint128_t data, MatGf2 mat);
 
 int MatGf2Set(MatGf2 mat, int row, int col, int value);
 
@@ -141,12 +148,18 @@ uint64_t get64FromVec(const MatGf2 vec);
 
 uint32_t getDigitalFromVec(const MatGf2 vec);
 
-/**
+__uint128_t ApplyMatToU128(const MatGf2 mat, __uint128_t data);
+
+__uint128_t AddMatToU128(const MatGf2 mat, __uint128_t x);
+
+__uint128_t get128FromVec(const MatGf2 vec);
+
+    /**
  * Stack A on top of B and write the result to dst.
  * [ A ], [ B ] -> [ A ] = dst
  *                 [ B ]
  * */
-int MatGf2Stack(const MatGf2 a, const MatGf2 b, MatGf2 *dst);
+    int MatGf2Stack(const MatGf2 a, const MatGf2 b, MatGf2 *dst);
 
 /**
  * Concatenate B to A and write the result to dst.

@@ -24,10 +24,6 @@ uint32_t ApplyAffineToU32(const AffineTransform aff, uint32_t x);
 
 uint64_t ApplyAffineToU64(const AffineTransform aff, uint64_t x);
 
-uint32_t MATtoU32(const MatGf2 mat, uint32_t x);
-
-uint64_t MATtoU64(const MatGf2 mat, uint64_t x);
-
 uint16_t ApplyAffineToU16(const AffineTransform aff, uint16_t data);
 
 uint8_t ApplyAffineToU8(const AffineTransform aff, uint8_t data);
