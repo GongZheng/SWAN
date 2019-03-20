@@ -59,9 +59,20 @@ uint64_t ApplyAffineToU64(const AffineTransform aff, uint64_t x)
 {
     MatGf2 mat_x = NULL;
     ReAllocatedMatGf2(64, 1, &mat_x);
-    InitVecFromBit(x, mat_x);
+    InitVecFromBit_64(x, mat_x);
     MatGf2Add(MatGf2Mul(aff.linear_map, mat_x, &mat_x), aff.vector_translation, &mat_x);
     uint64_t result = get64FromVec(mat_x);
+    MatGf2Free(mat_x);
+    return result;
+}
+
+__uint128_t ApplyAffineToU128(const AffineTransform aff, __uint128_t x)
+{
+    MatGf2 mat_x = NULL;
+    ReAllocatedMatGf2(128, 1, &mat_x);
+    InitVecFromBit_128(x, mat_x);
+    MatGf2Add(MatGf2Mul(aff.linear_map, mat_x, &mat_x), aff.vector_translation, &mat_x);
+    __uint128_t result = get128FromVec(mat_x);
     MatGf2Free(mat_x);
     return result;
 }
@@ -77,16 +88,6 @@ uint32_t MATtoU32(const MatGf2 mat, uint32_t x)
     return result;
 }
 
-uint64_t MATtoU64(const MatGf2 mat, uint64_t x)
-{
-    MatGf2 mat_x = NULL;
-    ReAllocatedMatGf2(64, 1, &mat_x);
-    InitVecFromBit(x, mat_x);
-    MatGf2Mul(mat, mat_x, &mat_x);
-    uint64_t result = get64FromVec(mat_x);
-    MatGf2Free(mat_x);
-    return result;
-}
 
 uint16_t ApplyAffineToU16(const AffineTransform aff, uint16_t x) {
     MatGf2 mat_x = NULL;

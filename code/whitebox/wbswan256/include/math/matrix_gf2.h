@@ -76,7 +76,7 @@ int ReAllocatedMatGf2(int r, int c, MatGf2 *mat);
 int ReAllocatedRandomMatGf2(int r, int c, MatGf2* mat);
 
 
-uint64_t AddMatToU64(const MatGf2 a, const uint32_t b);
+uint64_t AddMatToU64(const MatGf2 a, const uint64_t b);
 
 int ReAllocatedInvertibleMatGf2(int r, int c, MatGf2 *dst);
 
@@ -107,6 +107,10 @@ int InitMatrixFromBitArray(unsigned long *data, MatGf2 mat);
  * [ 1 ]
  * */
 int InitVecFromBit(unsigned long data, MatGf2 mat);
+
+int InitVecFromBit_64(uint64_t data, MatGf2 mat);
+
+int InitVecFromBit_128(__uint128_t data, MatGf2 mat);
 
 int MatGf2Set(MatGf2 mat, int row, int col, int value);
 
