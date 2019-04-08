@@ -43,13 +43,6 @@ void SWAN64_Diffusion_Round(uint8_t a[4], uint8_t R1, uint8_t R2, uint8_t R3)
 
     SwitchLanes(a);
 
-    //ShiftLanes(a, R1, R2, R3);
-
-    //Beta(a);
-
-    //ShiftLanes(a, R1, R2, R3);
-
-    //SwitchLanes(a);
 }
 
 int isFullDiffusion(uint8_t a[4])
@@ -63,9 +56,6 @@ int isFullDiffusion(uint8_t a[4])
 
 int testSWAN64FullDiffusion(uint8_t a[4],  uint8_t R1, uint8_t R2, uint8_t R3)
 {
-
-    //a[4]={8,0,0,0};
-    //uint32_t *han;
     uint8_t round = 1;
     uint8_t is_full_diffusion = 0;
 
