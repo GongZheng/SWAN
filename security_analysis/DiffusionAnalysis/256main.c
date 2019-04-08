@@ -66,9 +66,9 @@ int main(int argc, char *argv[], char *envp[])
         printf("usage: -l <num>\n");
         printf("num:\n");
         printf("\t1  turn on the swan_theta_analysis\n");
-        printf("\t2  a,b,c coprime on base on 1 level\n");
-        printf("\t3  a,b,c are prime to bitsize(8,16,32) base on 2 level\n");
-        printf("\t3  a,b,c are uniform distribute base on 3 level\n");
+        printf("\t2  R1,R2,R3 are coprime base on 1 level\n");
+        printf("\t3  R1,R2,R3 are prime to bitsize(8,16,32) base on 2 level\n");
+        printf("\t3  R1,R2,R3 are uniform distributed base on 3 level\n");
         return 0;
     }
     level = atoi(argv[2]);
@@ -82,9 +82,9 @@ int main(int argc, char *argv[], char *envp[])
         printf("usage: -l <num>\n");
         printf("num:\n");
         printf("\t1  turn on the swan_theta_analysis\n");
-        printf("\t2  a,b,c coprime on base on 1 level\n");
-        printf("\t3  a,b,c are prime to bitsize(8,16,32) base on 2 level\n");
-        printf("\t3  a,b,c are uniform distribute base on 3 level\n");
+        printf("\t2  R1,R2,R3 are coprime base on 1 level\n");
+        printf("\t3  R1,R2,R3 are prime to bitsize(8,16,32) base on 2 level\n");
+        printf("\t3  R1,R2,R3 are uniform distributed base on 3 level\n");
         return 0;
     }
 
