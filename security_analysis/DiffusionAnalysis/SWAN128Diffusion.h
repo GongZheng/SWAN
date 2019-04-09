@@ -33,7 +33,7 @@ void Beta(uint16_t a[4])
     a[3] = a[0];
 }
 
-void SWAN64_Diffusion_Round(uint16_t a[4], uint16_t R1, uint16_t R2, uint16_t R3)
+void SWAN128_Diffusion_Round(uint16_t a[4], uint16_t R1, uint16_t R2, uint16_t R3)
 {
     ShiftLanes(a, R1, R2, R3);
 
