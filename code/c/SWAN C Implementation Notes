@@ -1,0 +1,4 @@
+SWAN C Implementation Notes
+
+1. The on-the-fly mode is the key schedule executed along with the round function.
+2. The precompute mode is the key schedule fully executed, and all the subkeys are prepared before the round function.
