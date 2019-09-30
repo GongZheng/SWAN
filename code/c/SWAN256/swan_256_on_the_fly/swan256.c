@@ -30,7 +30,7 @@
  *
  *  Description: The c file of SWAN256. The key schedule is on-the-fly computed.
  *  Created on: 2018-12-24
- *  Last modified: 2019-07-29
+ *  Last modified: 2019-08-29
  *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang, Zhaoji Xu, Yingjie Zhang.
  */
 
@@ -75,34 +75,34 @@ uint64_t end_rdtsc()
     return __rdtsc();
 }
 
-#define ROTATE(k0, k1, k2, k3, k4, k5, k6, k7, tmp4, tmp5, tmp6, tmp7) do{\
-    tmp4 = (k7 << 8) | (k0 >> 24);\
-	tmp5 = (k6 << 8) | (k7 >> 24);\
-	tmp6 = (k5 << 8) | (k6 >> 24);\
-	tmp7 = (k4 << 8) | (k5 >> 24);\
-	k7 = (k3 << 8) | (k4 >> 24);\
-    k6 = (k2 << 8) | (k3 >> 24);\
-	k5 = (k1 << 8) | (k2 >> 24);\
-	k4 = (k0 << 8) | (k1 >> 24);\
-	k3 = tmp4;\
-    k2 = tmp5;\
-    k1 = tmp6;\
-	k0 = tmp7;\
-}while(0);
-
-#define INVROTATE(k0, k1, k2, k3, k4, k5, k6, k7, tmp4, tmp5, tmp6, tmp7) do{\
-    tmp4 = (k0 >> 8) | (k7 << 24);\
-	tmp5 = (k1 >> 8) | (k0 << 24);\
-	tmp6 = (k2 >> 8) | (k1 << 24);\
-	tmp7 = (k3 >> 8) | (k2 << 24);\
-	k0 = (k4 >> 8) | (k3 << 24);\
-    k1 = (k5 >> 8) | (k4 << 24);\
-	k2 = (k6 >> 8) | (k5 << 24);\
-	k3 = (k7 >> 8) | (k6 << 24);\
+#define ROTATE(k7, k6, k5, k4, k3, k2, k1, k0, tmp4, tmp5, tmp6, tmp7) do{\
+    tmp4 = (k0 << 8) | (k7 >> 24);\
+	tmp5 = (k1 << 8) | (k0 >> 24);\
+	tmp6 = (k2 << 8) | (k1 >> 24);\
+	tmp7 = (k3 << 8) | (k2 >> 24);\
+	k0 = (k4 << 8) | (k3 >> 24);\
+    k1 = (k5 << 8) | (k4 >> 24);\
+	k2 = (k6 << 8) | (k5 >> 24);\
+	k3 = (k7 << 8) | (k6 >> 24);\
 	k4 = tmp4;\
     k5 = tmp5;\
     k6 = tmp6;\
 	k7 = tmp7;\
+}while(0);
+
+#define INVROTATE(k7, k6, k5, k4, k3, k2, k1, k0, tmp4, tmp5, tmp6, tmp7) do{\
+    tmp4 = (k7 >> 8) | (k0 << 24);\
+	tmp5 = (k6 >> 8) | (k7 << 24);\
+	tmp6 = (k5 >> 8) | (k6 << 24);\
+	tmp7 = (k4 >> 8) | (k5 << 24);\
+	k7 = (k3 >> 8) | (k4 << 24);\
+    k6 = (k2 >> 8) | (k3 << 24);\
+	k5 = (k1 >> 8) | (k2 << 24);\
+	k4 = (k0 >> 8) | (k1 << 24);\
+	k3 = tmp4;\
+    k2 = tmp5;\
+    k1 = tmp6;\
+	k0 = tmp7;\
 }while(0);
 
 //The bitslicing of SWAN Sboxes for the Beta function;
@@ -452,7 +452,7 @@ int main()
     printf("\nSWAN256K256 decrypt cost %llu CPU cycles\n", (ans) / TEST);
 
 	printf("round test-swan256-256:\n");
-    Crypt_Enc_Block_Round(in, 256, out, &out_len, (uint8_t*)key, 256, 2);
+    Crypt_Enc_Block_Round(in, 256, out, &out_len, (uint8_t*)key, 256, 1);
     dump(out, sizeof(out));
     printf("\n");
     return 0;

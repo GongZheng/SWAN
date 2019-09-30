@@ -30,7 +30,7 @@
  *
  *  Description: The c file of SWAN128.h. The key schedule is computed round by round (on-the-fly).
  *  Created on: 2018-12-24
- *  Last modified: 2019-07-29
+ *  Last modified: 2019-08-29
  *  Author: Zheng Gong, Weijie Li, Guohong Liao, Tao Sun, Guojun Tang, Bing Sun, Siwei Sun, Zhaoji Xu, Yingjie Zhang.
  */
 
@@ -78,32 +78,32 @@ uint64_t end_rdtsc()
     return __rdtsc();
 }
 
-#define ROTATE_128(k0, k1, tmp, bits) do{\
-    tmp =  k1 << (64 - bits);\
-    k1 = (k1 >> bits) | (k0 << (64 - bits));\
-    k0 = (k0 >> bits) | tmp;\
+#define ROTATE_128(k1, k0, tmp, bits) do{\
+    tmp =  k0 << (64 - bits);\
+    k0 = (k0 >> bits) | (k1 << (64 - bits));\
+    k1 = (k1 >> bits) | tmp;\
 }while(0);
 
-#define INVROTATE_128(k0, k1, tmp, bits) do{\
-    tmp =  k0 >> (64 - bits);\
-    k0 = (k0 << bits) | (k1 >> (64 - bits));\
-    k1 = (k1 << bits) | tmp;\
+#define INVROTATE_128(k1, k0, tmp, bits) do{\
+    tmp =  k1 >> (64 - bits);\
+    k1 = (k1 << bits) | (k0 >> (64 - bits));\
+    k0 = (k0 << bits) | tmp;\
 }while(0);
 
-#define ROTATE_256(k0, k1, k2, k3, tmp, bits) do{\
-    tmp =  k3 << (64 - bits);\
-    k3 = (k3 >> bits) | (k2 << (64 - bits));\
-    k2 = (k2 >> bits) | (k1 << (64 - bits));\
-    k1 = (k1 >> bits) | (k0 << (64 - bits));\
-    k0 = (k0 >> bits) | tmp;\
+#define ROTATE_256(k3, k2, k1, k0, tmp, bits) do{\
+    tmp =  k0 << (64 - bits);\
+    k0 = (k0 >> bits) | (k1 << (64 - bits));\
+    k1 = (k1 >> bits) | (k2 << (64 - bits));\
+    k2 = (k2 >> bits) | (k3 << (64 - bits));\
+    k3 = (k3 >> bits) | tmp;\
 }while(0);
 
-#define INVROTATE_256(k0, k1, k2, k3, tmp, bits) do{\
-    tmp =  k0 >> (64 - bits);\
-    k0 = (k0 << bits) | (k1 >> (64 - bits));\
-    k1 = (k1 << bits) | (k2 >> (64 - bits));\
-    k2 = (k2 << bits) | (k3 >> (64 - bits));\
-    k3 = (k3 << bits) | tmp;\
+#define INVROTATE_256(k3, k2, k1, k0, tmp, bits) do{\
+    tmp =  k3 >> (64 - bits);\
+    k3 = (k3 << bits) | (k2 >> (64 - bits));\
+    k2 = (k2 << bits) | (k1 >> (64 - bits));\
+    k1 = (k1 << bits) | (k0 >> (64 - bits));\
+    k0 = (k0 << bits) | tmp;\
 }while(0);
 
 #define BETA(b0, b1, b2, b3, a0, a1, a2, a3) do {\
@@ -234,13 +234,13 @@ int Crypt_Enc_Block(unsigned char *input, int in_len, unsigned char *output, int
 		R3 = plain[7];		
 		for (i = 0; i < rounds; i++)
 		{
-			ROTATE_128(k0, k1, tmp, 56);
+			ROTATE_128(k1, k0, tmp, 56);
 			k0 += ROUND_DELTA[2*i];
 			key0 = k0;
 			key1 = k0>>16;
 			key2 = k0>>32;
 			key3 = k0>>48;
-			ROTATE_128(k0, k1, tmp, 56);
+			ROTATE_128(k1, k0, tmp, 56);
 			k0 += ROUND_DELTA[2*i+1];
 			key4 = k0;
 			key5 = k0>>16;
@@ -285,13 +285,13 @@ int Crypt_Enc_Block(unsigned char *input, int in_len, unsigned char *output, int
 		R3 = plain[7];
 		for (i = 0; i < rounds; i++)
 		{
-			ROTATE_256(k0, k1, k2, k3, tmp, 56);				
+			ROTATE_256(k3, k2, k1, k0, tmp, 56);				
 			k0 += ROUND_DELTA[2*i];
 			key0 = k0;
 			key1 = k0>>16;
 			key2 = k0>>32;
 			key3 = k0>>48;
-			ROTATE_256(k0, k1, k2, k3, tmp, 56);
+			ROTATE_256(k3, k2, k1, k0, tmp, 56);
 			k0 += ROUND_DELTA[2*i+1];
 			key4 = k0;
 			key5 = k0>>16;
@@ -335,7 +335,7 @@ int Crypt_Dec_Block(unsigned char *input, int in_len, unsigned char *output, int
 		k0 = masterKey[0];
 		k1 = masterKey[1];
 		for(i = 0; i < rounds * 2 + 1; i++){
-			ROTATE_128(k0, k1, tmp, 56);
+			ROTATE_128(k1, k0, tmp, 56);
 			k0 += ROUND_DELTA[i];
 		}	
 		
@@ -351,13 +351,13 @@ int Crypt_Dec_Block(unsigned char *input, int in_len, unsigned char *output, int
 		for (i = 0;i < rounds; i++)
 		{
 			k0 -= ROUND_DELTA[j];
-			INVROTATE_128(k0, k1, tmp, 56);	
+			INVROTATE_128(k1, k0, tmp, 56);	
 			key0 = k0;
 			key1 = k0>>16;
 			key2 = k0>>32;
 			key3 = k0>>48;
 			k0 -= ROUND_DELTA[j-1];
-			INVROTATE_128(k0, k1, tmp, 56);
+			INVROTATE_128(k1, k0, tmp, 56);
 			key4 = k0;
 			key5 = k0>>16;
 			key6 = k0>>32;
@@ -393,7 +393,7 @@ int Crypt_Dec_Block(unsigned char *input, int in_len, unsigned char *output, int
 		k3 = masterKey[3];
 		
 		for(i = 0; i < rounds * 2 + 1; i++){
-			ROTATE_256(k0, k1, k2, k3, tmp, 56);
+			ROTATE_256(k3, k2, k1, k0, tmp, 56);
 			k0 += ROUND_DELTA[i];
 		}
 		
@@ -409,13 +409,13 @@ int Crypt_Dec_Block(unsigned char *input, int in_len, unsigned char *output, int
 		for (i = 0;i < rounds; i++)
 		{
 			k0 -= ROUND_DELTA[j];
-			INVROTATE_256(k0, k1, k2, k3, tmp, 56);
+			INVROTATE_256(k3, k2, k1, k0, tmp, 56);
 			key0 = k0;
 			key1 = k0>>16;
 			key2 = k0>>32;
 			key3 = k0>>48;
 			k0 -= ROUND_DELTA[j-1];
-			INVROTATE_256(k0, k1, k2, k3, tmp, 56);
+			INVROTATE_256(k3, k2, k1, k0, tmp, 56);
 			key4 = k0;
 			key5 = k0>>16;
 			key6 = k0>>32;
@@ -466,13 +466,13 @@ int Crypt_Enc_Block_Round(unsigned char *input, int in_len, unsigned char *outpu
 		R3 = plain[7];
 		for (i = 0; i < rounds; i++)
 		{
-			ROTATE_128(k0, k1, tmp, 56);				
+			ROTATE_128(k1, k0, tmp, 56);				
 			k0 += ROUND_DELTA[2*i];
 			key0 = k0;
 			key1 = k0>>16;
 			key2 = k0>>32;
 			key3 = k0>>48;
-			ROTATE_128(k0, k1, tmp, 56);
+			ROTATE_128(k1, k0, tmp, 56);
 			k0 += ROUND_DELTA[2*i+1];
 			key4 = k0;
 			key5 = k0>>16;
@@ -509,13 +509,13 @@ int Crypt_Enc_Block_Round(unsigned char *input, int in_len, unsigned char *outpu
 		R3 = plain[7];
 		for (i = 0; i < rounds; i++)
 		{
-			ROTATE_256(k0, k1, k2, k3, tmp, 56);				
+			ROTATE_256(k3, k2, k1, k0, tmp, 56);				
 			k0 += ROUND_DELTA[2*i];
 			key0 = k0;
 			key1 = k0>>16;
 			key2 = k0>>32;
 			key3 = k0>>48;
-			ROTATE_256(k0, k1, k2, k3, tmp, 56);
+			ROTATE_256(k3, k2, k1, k0, tmp, 56);
 			k0 += ROUND_DELTA[2*i+1];
 			key4 = k0;
 			key5 = k0>>16;
@@ -617,10 +617,10 @@ int main()
 
 
     printf("round test-swan128-128:\n");
-    Crypt_Enc_Block_Round(in, 128, out, &out_len, key, 128, 2);
+    Crypt_Enc_Block_Round(in, 128, out, &out_len, key, 128, 1);
     dump(out, sizeof(out));
     printf("\nround test-swan128-256:\n");
-    Crypt_Enc_Block_Round(in, 128, out, &out_len, key, 256, 2);
+    Crypt_Enc_Block_Round(in, 128, out, &out_len, key, 256, 1);
     dump(out, sizeof(out));
     printf("\n");
 

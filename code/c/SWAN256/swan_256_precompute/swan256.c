@@ -30,7 +30,7 @@
  *
  *  Description: The c file of SWAN256. The key schedule is precomputed.
  *  Created on: 2018-12-24
- *  Last modified: 2019-07-13
+ *  Last modified: 2019-08-29
  *  Author: Zheng Gong, Weijie Li, Guohong Liao, Bing Sun, Siwei Sun, Tao Sun, Guojun Tang, Zhaoji Xu, Yingjie Zhang.
  */
 #include <stdio.h>
@@ -40,19 +40,19 @@
 #include "swan256.h"
 #define TEST 100000
 
-#define ROTATE(k0, k1, k2, k3, k4, k5, k6, k7, tmp1, tmp2, tmp3, tmp4) do{\
-    tmp1 = (k7 << 8) | (k0 >> 24);\
-	tmp2 = (k6 << 8) | (k7 >> 24);\
-	tmp3 = (k5 << 8) | (k6 >> 24);\
-	tmp4 = (k4 << 8) | (k5 >> 24);\
-	k7 = (k3 << 8) | (k4 >> 24);\
-    k6 = (k2 << 8) | (k3 >> 24);\
-	k5 = (k1 << 8) | (k2 >> 24);\
-	k4 = (k0 << 8) | (k1 >> 24);\
-	k3 = tmp1;\
-    k2 = tmp2;\
-    k1 = tmp3;\
-	k0 = tmp4;\
+#define ROTATE(k7, k6, k5, k4, k3, k2, k1, k0, tmp1, tmp2, tmp3, tmp4) do{\
+    tmp1 = (k0 << 8) | (k7 >> 24);\
+	tmp2 = (k1 << 8) | (k0 >> 24);\
+	tmp3 = (k2 << 8) | (k1 >> 24);\
+	tmp4 = (k3 << 8) | (k2 >> 24);\
+	k0 = (k4 << 8) | (k3 >> 24);\
+    k1 = (k5 << 8) | (k4 >> 24);\
+	k2 = (k6 << 8) | (k5 >> 24);\
+	k3 = (k7 << 8) | (k6 >> 24);\
+	k4 = tmp1;\
+    k5 = tmp2;\
+    k6 = tmp3;\
+	k7 = tmp4;\
 }while(0);
 
 //The bitslicing of SWAN Sboxes for the Beta function;
@@ -389,7 +389,7 @@ int main()
     dump(in, sizeof(in));
     printf("\nSWAN256K256 decrypt cost %llu CPU cycles\n", (ans) / TEST);
     printf("round test-swan256-256:\n");
-    Crypt_Enc_Block_Round(in, 256, out, &out_len, (uint8_t*)subkey, 256, 2);
+    Crypt_Enc_Block_Round(in, 256, out, &out_len, (uint8_t*)subkey, 256, 1);
     dump(out, sizeof(out));
     printf("\n");
 	

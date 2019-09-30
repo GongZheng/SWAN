@@ -30,7 +30,7 @@
  *
  *  Description: The c file of SWAN128.h. The key schedule is precomputed.
  *  Created on: 2018-12-24
- *  Last modified: 2019-07-08
+ *  Last modified: 2019-08-29
  *  Author: Zheng Gong, Weijie Li, Guohong Liao, Tao Sun, Guojun Tang, Bing Sun, Siwei Sun, Zhaoji Xu, Yingjie Zhang.
  */
 
@@ -48,18 +48,18 @@
 //Repeat test times and calculate on average for accuracy
 #define TEST 100000
 
-#define ROTATE_128(k0, k1, tmp, bits) do{\
-    tmp =  k1 << (64 - bits);\
-    k1 = (k1 >> bits) | (k0 << (64 - bits));\
-    k0 = (k0 >> bits) | tmp;\
+#define ROTATE_128(k1, k0, tmp, bits) do{\
+    tmp =  k0 << (64 - bits);\
+    k0 = (k0 >> bits) | (k1 << (64 - bits));\
+    k1 = (k1 >> bits) | tmp;\
 }while(0);
 
-#define ROTATE_256(k0, k1, k2, k3, tmp, bits) do{\
-    tmp =  k3 << (64 - bits);\
-    k3 = (k3 >> bits) | (k2 << (64 - bits));\
-    k2 = (k2 >> bits) | (k1 << (64 - bits));\
-    k1 = (k1 >> bits) | (k0 << (64 - bits));\
-    k0 = (k0 >> bits) | tmp;\
+#define ROTATE_256(k3, k2, k1, k0, tmp, bits) do{\
+    tmp =  k0 << (64 - bits);\
+    k0 = (k0 >> bits) | (k1 << (64 - bits));\
+    k1 = (k1 >> bits) | (k2 << (64 - bits));\
+    k2 = (k2 >> bits) | (k3 << (64 - bits));\
+    k3 = (k3 >> bits) | tmp;\
 }while(0);
 
 #define BETA(b0, b1, b2, b3, a0, a1, a2, a3) do {\
@@ -203,7 +203,7 @@ int Key_Schedule(unsigned char *Seedkey, int KeyLen, unsigned char Direction, un
 		k0 = masterKey[0];
 		k1 = masterKey[1];
 		for(i = 0; i < rounds * 2 ; i++){
-			ROTATE_128(k0, k1, tmp, 56);
+			ROTATE_128(k1, k0, tmp, 56);
 			k0 += ROUND_DELTA[i];
 			ekey[i] = k0;
 		}
@@ -220,7 +220,7 @@ int Key_Schedule(unsigned char *Seedkey, int KeyLen, unsigned char Direction, un
 		k2 = masterKey[2];
 		k3 = masterKey[3];
 		for(i = 0; i < rounds * 2 ; i++){
-			ROTATE_256(k0, k1, k2, k3, tmp, 56);
+			ROTATE_256(k3, k2, k1, k0, tmp, 56);
 			k0 += ROUND_DELTA[i];
 			ekey[i] = k0;
 		}
@@ -234,7 +234,6 @@ int Crypt_Enc_Block(unsigned char *input, int in_len, unsigned char *output, int
     case KEY128://Full-Round SWAN128 with key length 128 bits
 		{
 			const uint16_t *plain = (uint16_t*)input;
-			//uint16_t *_subkey = (uint16_t*)key;
 			const uint8_t rounds = ROUNDS128_K128;
 			uint16_t *cipher = (uint16_t*)output;
 			uint16_t L0, L1, L2 ,L3 ,R0 ,R1, R2, R3, T0, T1, T2, T3, tmp0, tmp1 ,tmp2 ,tmp3;
@@ -276,7 +275,6 @@ int Crypt_Enc_Block(unsigned char *input, int in_len, unsigned char *output, int
 	case KEY256://Full-Round SWAN128 with key length 256 bits
 		{
 			const uint16_t *plain = (uint16_t*)input;
-			//uint16_t *_subkey = (uint16_t*)key;
 			const uint8_t rounds = ROUNDS128_K256;
 			uint16_t *cipher = (uint16_t*)output;
 			uint16_t L0, L1, L2 ,L3 ,R0 ,R1, R2, R3, T0, T1, T2, T3, tmp0, tmp1 ,tmp2 ,tmp3;
@@ -329,7 +327,6 @@ int Crypt_Dec_Block(unsigned char *input, int in_len, unsigned char *output, int
     case KEY128:
 		{
 			const uint16_t *cipher = (uint16_t*)input;
-			//uint16_t *_subkey = (uint16_t*)key;
 			const uint8_t rounds = ROUNDS128_K128;
 			uint16_t *plain = (uint16_t*)output;
 			uint16_t L0, L1, L2 ,L3 ,R0 ,R1, R2, R3, T0, T1, T2, T3, tmp0, tmp1 ,tmp2 ,tmp3;
@@ -371,7 +368,6 @@ int Crypt_Dec_Block(unsigned char *input, int in_len, unsigned char *output, int
 	case KEY256:
 		{
 			const uint16_t *cipher = (uint16_t*)input;
-			//uint16_t *_subkey = (uint16_t*)key;
 			const uint8_t rounds = ROUNDS128_K256;
 			uint16_t *plain = (uint16_t*)output;
 			uint16_t L0, L1, L2 ,L3 ,R0 ,R1, R2, R3, T0, T1, T2, T3, tmp0, tmp1 ,tmp2 ,tmp3;
@@ -420,7 +416,6 @@ int Crypt_Dec_Block(unsigned char *input, int in_len, unsigned char *output, int
 int Crypt_Enc_Block_Round(unsigned char *input, int in_len, unsigned char *output, int *out_len, unsigned char *key, int keylen, int CryptRound)
 {
 	const uint16_t *plain = (uint16_t*)input;
-	//uint16_t *_subkey = (uint16_t*)key;
 	const uint8_t rounds = CryptRound;
 	uint16_t *cipher = (uint16_t*)output;
 	uint16_t L0, L1, L2 ,L3 ,R0 ,R1, R2, R3, T0, T1, T2, T3, tmp0, tmp1 ,tmp2 ,tmp3;
@@ -461,7 +456,6 @@ int main(){
     unsigned char in[16] = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0};
     unsigned char out[16];
     unsigned char key[32] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    ;
 
     
     printf("--------------------SWAN-128block-128keysize--------------------\n");
