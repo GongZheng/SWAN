@@ -35,111 +35,111 @@ int main()
     
     //swan64_k128
     printf("\n--------------------swan64_k128--------------------\n");
-    dump(in, sizeof(in));
+    dump(in, 8);
     begin = start_rdtsc();
     for(i = 0;i<TEST;i++)
     {
-        SWAN64_K128_encrypt_rounds(in, key, ROUNDS64_K128, out);
+        Crypt_Enc_Block64_k128(in, 64, out, NULL, key, KEY128);
     }
     end = end_rdtsc();
-    dump(out, sizeof(out));
+    dump(out, 8);
     ans = (end - begin);
     printf("\nSWAN64K128 encrypt cost %llu CPU cycles\n", (ans) / TEST);
     begin = start_rdtsc();
     for (i = 0; i < TEST; i++)
     {
-        SWAN64_K128_decrypt_rounds(out, key, ROUNDS64_K128, in);
+        Crypt_Dec_Block64_k128(out, 64, in,  NULL, key, KEY128);
     }
     end = end_rdtsc();
-    dump(in, sizeof(in));
+    dump(in, 8);
     ans = (end - begin);
     printf("\nSWAN64K128 decrypt cost %llu CPU cycles\n", (ans) / TEST);
     
     //swan64_k256
     printf("\n--------------------swan64_k256--------------------\n");
-    dump(in, sizeof(in));
+    dump(in, 8);
     begin = start_rdtsc();
     for (i = 0; i < TEST; i++)
     {
-        SWAN64_K256_encrypt_rounds(in, key, ROUNDS64_K256, out);
+        Crypt_Enc_Block64_k256(in, 64, out, NULL, key, KEY256);
     }
     end = end_rdtsc();
-    dump(out, sizeof(out));
+    dump(out, 8);
     ans = (end - begin);
     printf("\nSWAN64K256 encrypt cost %llu CPU cycles\n", (ans) / TEST);
     begin = start_rdtsc();
     for (i = 0; i < TEST; i++)
     {
-        SWAN64_K256_decrypt_rounds(out, key, ROUNDS64_K256, in);
+        Crypt_Dec_Block64_k256(out, 64, in,  NULL, key, KEY256);
     }
     end = end_rdtsc();
-    dump(in, sizeof(in));
+    dump(in,8);
     ans = (end - begin);
     printf("\nSWAN64K256 decrypt cost %llu CPU cycles\n", (ans) / TEST);
 
     //swan128_k128
     printf("\n--------------------swan128_k128--------------------\n");
-    dump(in, sizeof(in));
+    dump(in, 16);
     begin = start_rdtsc();
     for (i = 0; i < TEST; i++)
     {
-        SWAN128_K128_encrypt_rounds(in, key, ROUNDS128_128, out);
+        Crypt_Enc_Block128(in, 128, out, NULL, key, KEY128);
     }
     end = end_rdtsc();
-    dump(out, sizeof(out));
+    dump(out, 16);
     ans = (end - begin);
     printf("\nSWAN128K128 encrypt cost %llu CPU cycles\n", (ans) / TEST);
     begin = start_rdtsc();
     for (i = 0; i < TEST; i++)
     {
-        SWAN128_K128_decrypt_rounds(out, key, ROUNDS128_128, in);
+        Crypt_Dec_Block128(out, 128, in, NULL, key, KEY128);
     }
     end = end_rdtsc();
-    dump(in, sizeof(in));
+    dump(in, 16);
     ans = (end - begin);
     printf("\nSWAN128K128 decrypt cost %llu CPU cycles\n", (ans) / TEST);
 
     //128_256
     printf("\n--------------------swan128_k256--------------------\n");
-    dump(in, sizeof(in));
+    dump(in, 16);
     begin = start_rdtsc();
     for (i = 0; i < TEST; i++)
     {
-        SWAN128_K256_encrypt_rounds(in, key, ROUNDS128_256, out);
+        Crypt_Enc_Block128(in, 128, out, NULL, key, KEY256);
     }
     end = end_rdtsc();
-    dump(out, sizeof(out));
+    dump(out, 16);
     ans = (end - begin);
     printf("\nSWAN128K256 encrypt cost %llu CPU cycles\n", (ans) / TEST);
     begin = start_rdtsc();
     for (i = 0; i < TEST; i++)
     {
-        SWAN128_K256_decrypt_rounds(out, key, ROUNDS128_256, in);
+        Crypt_Dec_Block128(out, 128, in, NULL, key, KEY256);
     }
     end = end_rdtsc();
-    dump(in, sizeof(in));
+    dump(in, 16);
     ans = (end - begin);
     printf("\nSWAN128K256 decrypt cost %llu CPU cycles\n", (ans) / TEST);
 
     //swan256_k256
     printf("\n--------------------swan256_k256--------------------\n");
-    dump(in, sizeof(in));
+    dump(in, 32);
     begin = start_rdtsc();
     for (i = 0; i < TEST; i++)
     {
-        SWAN256_encrypt_rounds(in, key, ROUNDS256_256, out);
+        Crypt_Enc_Block256(in,256,out,NULL,key,KEY256);
     }
     end = end_rdtsc();
-    dump(out, sizeof(out));
+    dump(out, 32);
     ans = (end - begin);
     printf("\nSWAN256K256 encrypt cost %llu CPU cycles\n", (ans) / TEST);
     begin = start_rdtsc();
     for (i = 0; i < TEST; i++)
     {
-        SWAN256_decrypt_rounds(out, key, ROUNDS256_256, in);
+        Crypt_Dec_Block256(out,256,in,NULL,(uint8_t*)key,KEY256);
     }
     end = end_rdtsc();
-    dump(in, sizeof(in));
+    dump(in, 32);
     ans = (end - begin);
     printf("\nSWAN256k256 decrypt cost %llu CPU cycles\n", (ans) / TEST);
 

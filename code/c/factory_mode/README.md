@@ -19,7 +19,7 @@ ${build_type} could be none,debug,release
 |:-------------:|:-------------|
 | none |  |
 |debug|"-O0 -g3"|
-| none | "-O2" |
+| release | "-O2" |
 
 
 ```
